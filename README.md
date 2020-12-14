@@ -17,7 +17,7 @@
 --form 'email="user1@app.app"' \
 --form 'password="123456"'`
 
-##### POST /api/v1/tasks
+##### POST /api/v1/transactions
 `curl --location --request POST 'http://127.0.0.1:8012/api/v1/transactions' \
 --header 'Authorization: Bearer <your_access_token>' \
 --form 'from_user_id="<from_user_id>"' \
