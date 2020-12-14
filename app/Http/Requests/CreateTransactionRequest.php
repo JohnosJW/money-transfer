@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types = 1);
 
 namespace App\Http\Requests;
 
@@ -15,22 +16,21 @@ class CreateTransactionRequest extends FormRequest
     /**
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * @return mixed
+     * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'from_user_id' => 'required|integer',
-            'to_user_id' => 'required|integer',
-            'from_wallet_address' => 'required|string',
-            'to_wallet_address' => 'required|string',
-            'amount' => 'required|integer',
+            'to_user_id' => 'required|integer|exists:users,id',
+            'from_wallet_address' => 'required|string|exists:wallets,address',
+            'to_wallet_address' => 'required|string|exists:wallets,address',
+            'amount' => 'required|numeric',
         ];
     }
 }

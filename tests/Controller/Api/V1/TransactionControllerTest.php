@@ -5,9 +5,9 @@ declare(strict_types = 1);
 namespace Tests\Controller\Api\V1;
 
 
-use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
+use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Passport\Passport;
 use Tests\TestCase;
 
@@ -17,22 +17,23 @@ use Tests\TestCase;
  */
 class TransactionControllerTest extends TestCase
 {
+    use WithFaker;
+
     /** @test */
-    public function testCreatePositiveScenario(): void
+    public function createPositiveScenario(): void
     {
-        /** @var  $amount */
-        $amount = 10;
+        $amount = "0.001";
 
         $userFrom = User::create([
-            'name' => 'User' . rand(100, 100000),
-            'email' => 'user' . rand() . '@app.app',
-            'password' => bcrypt('123456'),
+            'name' => $this->faker->name,
+            'email' => $this->faker->email,
+            'password' => bcrypt($this->faker->password),
         ]);
 
         $userTo = User::create([
-            'name' => 'User' . rand(100, 100000),
-            'email' => 'user' . rand() . '@app.app',
-            'password' => bcrypt('123456'),
+            'name' => $this->faker->name,
+            'email' => $this->faker->email,
+            'password' => bcrypt($this->faker->password),
         ]);
 
         /** @var  $walletOfFirstUser */
@@ -50,8 +51,7 @@ class TransactionControllerTest extends TestCase
             ['create-servers']
         );
 
-        $response = $this->postJson('/api/v1/transactions', [
-            "from_user_id" => $userFrom->id,
+        $response = $this->postJson(route('transactions'), [
             "to_user_id" => $userTo->id,
             "from_wallet_address" => $walletFrom->address,
             "to_wallet_address" => $walletTo->address,
@@ -59,56 +59,25 @@ class TransactionControllerTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-
-        $response->assertJson(['data' => [
-            "userFromWallet" => [
-                "id" => $walletFrom->id,
-                "user_id" => $walletFrom->user_id,
-                "address" => $walletFrom->address,
-            ],
-            "userToWallet" => [
-                "id" => $walletTo->id,
-                "user_id" => $walletTo->user_id,
-                "address" => $walletTo->address,
-            ],
-            "debitTransaction" => [
-                "user_id" => $userTo->id,
-                "type" => Transaction::TYPE_DEBIT,
-                "from_wallet_address" => $walletFrom->address,
-                "to_wallet_address" => $walletTo->address,
-                "amount" => $amount * Wallet::CENTS_IN_ONE_CURRENCY,
-                "status" => Transaction::STATUS_PENDING
-            ],
-            "creditTransaction" => [
-                "user_id" => $userFrom->id,
-                "type" => Transaction::TYPE_CREDIT,
-                "from_wallet_address" => $walletFrom->address,
-                "to_wallet_address" => $walletTo->address,
-                "amount" => $amount * Wallet::CENTS_IN_ONE_CURRENCY,
-                "status" => Transaction::STATUS_PENDING,
-            ],
-        ]]);
+        $response->assertJson(['success' => 'Transaction success']);
     }
 
     /** @test */
-    public function testCreateNegativeScenarioLowBalance(): void
+    public function createNegativeScenarioLowBalance(): void
     {
         /** @var  $amount */
-        $amount = 1000;
-
-        /** @var  $message */
-        $message = "Too low balance";
+        $amount = "1000";
 
         $userFrom = User::create([
-            'name' => 'User' . rand(100, 100000),
-            'email' => 'user' . rand() . '@app.app',
-            'password' => bcrypt('123456'),
+            'name' => $this->faker->name,
+            'email' => $this->faker->email,
+            'password' => bcrypt($this->faker->password),
         ]);
 
         $userTo = User::create([
-            'name' => 'User' . rand(100, 100000),
-            'email' => 'user' . rand() . '@app.app',
-            'password' => bcrypt('123456'),
+            'name' => $this->faker->name,
+            'email' => $this->faker->email,
+            'password' => bcrypt($this->faker->password),
         ]);
 
         /** @var  $walletOfFirstUser */
@@ -126,16 +95,14 @@ class TransactionControllerTest extends TestCase
             ['create-servers']
         );
 
-        $response = $this->postJson('/api/v1/transactions', [
-            "from_user_id" => $userFrom->id,
+        $response = $this->postJson(route('transactions'), [
             "to_user_id" => $userTo->id,
             "from_wallet_address" => $walletFrom->address,
             "to_wallet_address" => $walletTo->address,
             "amount" => $amount,
         ]);
 
-        $response->assertStatus(500);
-
-        $this->assertEquals($message, $response->exception->getMessage());
+        $response->assertStatus(422);
+        $response->assertJson(['Too low balance']);
     }
 }

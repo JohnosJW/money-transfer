@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
 
 namespace App\Services;
 
 
 use App\Models\Transaction;
+use App\Models\Wallet;
 use App\Repositories\Interfaces\WalletRepositoryInterface;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\DatabaseManager;
 use Throwable;
 
 /**
@@ -34,72 +36,65 @@ class TransactionService
      * @param int $toUserId
      * @param string $addressFrom
      * @param string $addressTo
-     * @param int $amount
-     * @return array
+     * @param string $amount
+     * @return bool
      * @throws Throwable
      */
-    public function send(int $fromUserId, int $toUserId, string $addressFrom, string $addressTo, int $amount): array
+    public function send(int $fromUserId, int $toUserId, string $addressFrom, string $addressTo, string $amount): bool
     {
-        /** @var  $userFromWallet */
         $userFromWallet = $this->walletRepository
             ->getByUserIdAndAddressWithLockForUpdate($fromUserId, $addressFrom)->first();
 
-        /** @var  $userToWallet */
         $userToWallet = $this->walletRepository
             ->getByUserIdAndAddressWithLockForUpdate($toUserId, $addressTo)->first();
 
-        /** @var  $amountWithCommission */
-        $amountWithCommission = round($amount * Transaction::COMMISSION, 0);
+        $amountWithCommission = MoneyService::getAmountWithCommission($amount);
 
         if (empty($userFromWallet->user_id) || $userFromWallet->user_id !== $fromUserId) {
-            throw new \RuntimeException('Not correct from address');
+            throw new \RuntimeException('Not correct from address', 422);
         }
 
         if (empty($userToWallet->user_id) || $userToWallet->user_id !== $toUserId) {
-            throw new \RuntimeException('Not correct to address');
+            throw new \RuntimeException('Not correct to address', 422);
         }
 
         if ($userFromWallet->balance < $amountWithCommission) {
-            throw new \RuntimeException('Too low balance');
+            throw new \RuntimeException('Too low balance', 422);
         }
 
-        if (!$amount > 0) {
-            throw new \RuntimeException('Not correct amount');
+        if ($amount <= 0) {
+            throw new \RuntimeException('Not correct amount', 422);
         }
 
         try {
-            DB::beginTransaction();
-
-            $data = $this->performTransaction($userFromWallet, $userToWallet, $amount, $amountWithCommission);
-
-            DB::commit();
-
-            return $data;
+            app(DatabaseManager::class)->beginTransaction();
+            $this->performTransaction($userFromWallet, $userToWallet, $amount, $amountWithCommission);
+            app(DatabaseManager::class)->commit();
         } catch (Throwable $exception) {
-            DB::rollBack();
+            app(DatabaseManager::class)->rollBack();
             throw $exception;
         }
+
+        return true;
     }
 
     /**
-     * @param $userFromWallet
-     * @param $userToWallet
-     * @param int $amount
-     * @param int $amountWithCommission
-     * @return array
+     * @param Wallet $userFromWallet
+     * @param Wallet $userToWallet
+     * @param string $amount
+     * @param string $amountWithCommission
+     * @return bool
      */
-    public function performTransaction($userFromWallet, $userToWallet, int $amount, int $amountWithCommission): array
+    public function performTransaction(Wallet $userFromWallet, Wallet $userToWallet, string $amount, string $amountWithCommission): bool
     {
-        /** @var  $debitTransaction */
         $debitTransaction = new Transaction();
         $debitTransaction->user_id = $userToWallet->user_id;
         $debitTransaction->type = Transaction::TYPE_DEBIT;
         $debitTransaction->from_wallet_address = $userFromWallet->address;
         $debitTransaction->to_wallet_address = $userToWallet->address;
         $debitTransaction->amount = $amount;
-        $debitTransaction->status = Transaction::STATUS_PENDING;
+        $debitTransaction->status = Transaction::STATUS_DONE;
 
-        /** @var  $creditTransaction */
         $creditTransaction = new Transaction();
         $creditTransaction->user_id = $userFromWallet->user_id;
         $creditTransaction->type = Transaction::TYPE_CREDIT;
@@ -107,7 +102,7 @@ class TransactionService
         $creditTransaction->to_wallet_address = $userToWallet->address;
         $creditTransaction->amount = $amount;
         $creditTransaction->commission = $amountWithCommission - $amount;
-        $creditTransaction->status = Transaction::STATUS_PENDING;
+        $creditTransaction->status = Transaction::STATUS_DONE;
 
         $userFromWallet->balance -= $amountWithCommission;
         $userToWallet->balance += $amount;
@@ -118,11 +113,6 @@ class TransactionService
         $userFromWallet->save();
         $userToWallet->save();
 
-        return [
-            'userFromWallet' => $userFromWallet,
-            'userToWallet' => $userToWallet,
-            'debitTransaction' => $debitTransaction,
-            'creditTransaction' => $creditTransaction,
-        ];
+        return true;
     }
 }

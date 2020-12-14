@@ -30,7 +30,7 @@ class ApiBaseController extends Controller
      * @param int $statusCode
      * @return JsonResponse
      */
-    protected function errorResponse(array $data = [], $statusCode = Response::HTTP_INTERNAL_SERVER_ERROR): JsonResponse
+    protected function errorResponse(array $data = [], $statusCode = Response::HTTP_UNPROCESSABLE_ENTITY): JsonResponse
     {
         return new JsonResponse($data, $statusCode);
     }

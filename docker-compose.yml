@@ -9,14 +9,14 @@ services:
     volumes:
       - .:/var/www/html/:cached
     environment:
-      XDEBUG_CONFIG: "remote_host=192.168.1.40 remote_enable=1 remote_autostart=off remote_port=9000"
+#      XDEBUG_CONFIG: "remote_host=192.168.1.40 remote_enable=1 remote_autostart=off remote_port=9000"
       PHP_IDE_CONFIG: "serverName=Docker"
 
   nginx:
     image: nginx:latest
     container_name: ${APP_NAME:?err}-nginx
     ports:
-      - 8012:80
+      - ${NGINX_OUTSIDE_PORT}:80
     links:
       - 'php'
     volumes:
@@ -33,7 +33,7 @@ services:
       - MYSQL_USER=${DB_USERNAME}
       - MYSQL_PASSWORD=${DB_PASSWORD}
     ports:
-      - 8001:3306
+      - ${DB_OUTSIDE_PORT}:3306
     volumes:
       - mariadb_data:/var/lib/mysql
 

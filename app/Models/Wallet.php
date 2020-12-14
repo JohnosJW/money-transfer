@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types = 1);
 
 namespace App\Models;
 
@@ -7,8 +8,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use phpseclib\Math\BigInteger;
 
 /**
+ * @property int $user_id
+ * @property string $address
+ * @property BigInteger $balance
+ *
  * Class Wallet
  * @package App\Models
  */
@@ -19,20 +25,14 @@ class Wallet extends Model
     /** @var string  */
     public $table = 'wallets';
 
-    /** @var string  */
-    const CREATED_AT = 'created_at';
-
-    /** @var string  */
-    const UPDATED_AT = 'updated_at';
-
     /** @var array  */
     protected $dates = ['deleted_at'];
 
     /** @var int  */
-    const START_BALANCE = 100;
+    public const START_BALANCE = 1;
 
     /** @var int  */
-    const CENTS_IN_ONE_CURRENCY = 100;
+    public const SATOSHI_IN_ONE_BITCOIN = 100000000;
 
     /**
      * @var array
@@ -47,20 +47,20 @@ class Wallet extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
     }
 
     /**
      * Generate auto saving fields
      */
-    public static function boot()
+    public static function boot(): void
     {
         parent::boot();
 
         static::creating(function($model)
         {
             $model->address = md5(uniqid());
-            $model->balance = self::START_BALANCE * self::CENTS_IN_ONE_CURRENCY;
+            $model->balance = self::START_BALANCE * self::SATOSHI_IN_ONE_BITCOIN;
         });
     }
 }

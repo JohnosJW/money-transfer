@@ -1,14 +1,15 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Api\V1;
 
 
 use App\Http\Controllers\Api\ApiBaseController;
 use App\Http\Requests\CreateTransactionRequest;
-use App\Models\Wallet;
+use App\Services\MoneyService;
 use App\Services\TransactionService;
+use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Throwable;
 
@@ -26,32 +27,22 @@ class TransactionController extends ApiBaseController
      */
     public function store(CreateTransactionRequest $request, TransactionService $transactionService): JsonResponse
     {
-        /** @var  $fromUser */
+        /** @var  CreateTransactionRequest $fromUser */
         $fromUser = $request->user();
-
-        /** @var  $toUserId */
         $toUserId = (int)$request->post('to_user_id');
-
-        /** @var  $address */
         $addressFrom = $request->post('from_wallet_address');
-
-        /** @var  $addressTo */
         $addressTo = $request->post('to_wallet_address');
-
-        /** @var  $amount */
         $amount = $request->post('amount');
-
-        // convert currency in a little coins (cents)
-        $amount = $amount * Wallet::CENTS_IN_ONE_CURRENCY;
+        $amount = MoneyService::convertToSatoshi($amount);
 
         try {
-            $data = $transactionService->send($fromUser->id, $toUserId, $addressFrom, $addressTo, $amount);
-
-            return $this->successResponse([
-                'data' => $data,
-            ]);
+            $transactionService->send($fromUser->id, $toUserId, $addressFrom, $addressTo, $amount);
         } catch (\DomainException $e) {
             return $this->errorResponse([$e->getMessage()]);
+        } catch (Exception $e) {
+            return  $this->errorResponse([$e->getMessage()]);
         }
+
+        return $this->successResponse(['success' => 'Transaction success']);
     }
 }

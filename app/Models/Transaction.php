@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types = 1);
 
 namespace App\Models;
 
@@ -7,8 +8,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use phpseclib\Math\BigInteger;
 
 /**
+ * @property int $user_id
+ * @property string $type
+ * @property string $from_wallet_address
+ * @property string $to_wallet_address
+ * @property BigInteger $amount
+ * @property BigInteger $commission
+ * @property string $status
+ *
  * Class Transaction
  * @package App\Models
  */
@@ -20,22 +30,13 @@ class Transaction extends Model
     public $table = 'transactions';
 
     /** @var string  */
-    const CREATED_AT = 'created_at';
+    public const TYPE_DEBIT = 'debit';
 
     /** @var string  */
-    const UPDATED_AT = 'updated_at';
+    public const TYPE_CREDIT = 'credit';
 
     /** @var string  */
-    const TYPE_DEBIT = 'debit';
-
-    /** @var string  */
-    const TYPE_CREDIT = 'credit';
-
-    /** @var float  */
-    const COMMISSION = 1.015;
-
-    /** @var string  */
-    const STATUS_PENDING = 'pending';
+    public const STATUS_DONE = 'done';
 
     /** @var array  */
     protected $dates = ['deleted_at'];
@@ -58,6 +59,6 @@ class Transaction extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo('App\Models\User');
+        return $this->belongsTo(User::class);
     }
 }
