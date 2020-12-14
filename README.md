@@ -1,62 +1,27 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+## Initial steps
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+1. Run `docker-compose up`
+    - run `docker-compose exec php composer i`
+    - you can connect to db by credentials in .env file (outside container: 127.0.0.1:8001)
+2. Run migrations `docker exec $(docker ps -q -f name=myapp-php) php artisan migrate`
+3. Run command for Creating A Personal Access Client `docker exec $(docker ps -q -f name=myapp-php) php artisan passport:install`
+4. Run command `docker exec $(docker ps -q -f name=myapp-php) php artisan command:sample-data` to fill DB by test data.
+    (In console terminal you will see needed credentials: created users and wallets)
+5. Create POST Requests to http://127.0.0.1:8012/api/v1/auth with `email = user1@app.app, password = 123456` for get access_token
+6. Requests must be sent with `OAuth 2.0` type authorization and token must be `Bearer <your_access_token>`.
+7. There are tests for end-points. Execute by: `docker exec $(docker ps -q -f name=myapp-php) ./vendor/bin/phpunit tests/Controller/Api/V1/`
 
-## About Laravel
+## Curl requests
+##### POST /api/v1/auth
+`curl --location --request POST 'http://127.0.0.1:8012/api/v1/auth' \
+--form 'email="user1@app.app"' \
+--form 'password="123456"'`
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+##### POST /api/v1/tasks
+`curl --location --request POST 'http://127.0.0.1:8012/api/v1/transactions' \
+--header 'Authorization: Bearer <your_access_token>' \
+--form 'from_user_id="<from_user_id>"' \
+--form 'to_user_id="<to_user_id>"' \
+--form 'from_wallet_address="<from_user_wallet_address>"' \
+--form 'to_wallet_address="<to_user_wallet_address>"' \
+--form 'amount="10"'`
