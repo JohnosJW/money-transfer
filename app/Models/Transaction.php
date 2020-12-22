@@ -13,11 +13,10 @@ use phpseclib\Math\BigInteger;
 /**
  * @property int $user_id
  * @property string $type
- * @property string $from_wallet_address
- * @property string $to_wallet_address
+ * @property int $from_wallet_id
+ * @property int $to_wallet_id
  * @property BigInteger $amount
  * @property BigInteger $commission
- * @property string $status
  *
  * Class Transaction
  * @package App\Models
@@ -25,18 +24,6 @@ use phpseclib\Math\BigInteger;
 class Transaction extends Model
 {
     use SoftDeletes;
-
-    /** @var string  */
-    public $table = 'transactions';
-
-    /** @var string  */
-    public const TYPE_DEBIT = 'debit';
-
-    /** @var string  */
-    public const TYPE_CREDIT = 'credit';
-
-    /** @var string  */
-    public const STATUS_DONE = 'done';
 
     /** @var array  */
     protected $dates = ['deleted_at'];
@@ -51,7 +38,6 @@ class Transaction extends Model
         'to_wallet_address',
         'amount',
         'commission',
-        'status',
     ];
 
     /**

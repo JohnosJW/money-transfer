@@ -27,9 +27,8 @@ class CreateTransactionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'to_user_id' => 'required|integer|exists:users,id',
-            'from_wallet_address' => 'required|string|exists:wallets,address',
-            'to_wallet_address' => 'required|string|exists:wallets,address',
+            'from_wallet_id' => 'required|integer|exists:wallets,id',
+            'to_wallet_id' => 'required|integer|exists:wallets,id',
             'amount' => 'required|numeric',
         ];
     }

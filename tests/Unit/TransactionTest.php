@@ -7,8 +7,9 @@ namespace Tests\Unit;
 
 use App\Models\User;
 use App\Models\Wallet;
+use App\Repositories\Interfaces\WalletRepositoryInterface;
 use App\Services\MoneyService;
-use Illuminate\Database\DatabaseManager;
+use App\Services\TransactionService;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Tests\TestCase;
@@ -21,11 +22,11 @@ class TransactionTest extends TestCase
 {
     use WithoutMiddleware, WithFaker;
 
-    /** @var object  */
-    protected object $walletRepository;
+    /** @var WalletRepositoryInterface  */
+    protected WalletRepositoryInterface $walletRepository;
 
-    /** @var object  */
-    protected object $transactionService;
+    /** @var TransactionService  */
+    protected TransactionService $transactionService;
 
     /**
      * @throws \Illuminate\Contracts\Container\BindingResolutionException
@@ -34,8 +35,8 @@ class TransactionTest extends TestCase
     {
         parent::setUp();
 
-        $this->walletRepository = $this->app->make('App\Repositories\Interfaces\WalletRepositoryInterface');
-        $this->transactionService = $this->app->make('App\Services\TransactionService');
+        $this->walletRepository = $this->app->make(WalletRepositoryInterface::class);
+        $this->transactionService = $this->app->make(TransactionService::class);
     }
 
     /**
@@ -43,17 +44,8 @@ class TransactionTest extends TestCase
      */
     public function performTransaction()
     {
-        $userFrom = User::create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'password' => bcrypt($this->faker->password),
-        ]);
-
-        $userTo = User::create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'password' => bcrypt($this->faker->password),
-        ]);
+        $userFrom = User::factory()->create();
+        $userTo = User::factory()->create();
 
         $walletFrom = Wallet::create([
             'user_id' => $userFrom->id,
@@ -64,17 +56,15 @@ class TransactionTest extends TestCase
         ]);
 
         $userFromWallet = $this->walletRepository
-            ->getByUserIdAndAddressWithLockForUpdate($userFrom->id, $walletFrom->address)->first();
+            ->getByIdWithLockForUpdate($walletFrom->id)->first();
 
         $userToWallet = $this->walletRepository
-            ->getByUserIdAndAddressWithLockForUpdate($userTo->id, $walletTo->address)->first();
+            ->getByIdWithLockForUpdate($walletTo->id)->first();
 
-        $amount = MoneyService::convertToSatoshi("0.009876");
-        $amountWithCommission = MoneyService::getAmountWithCommission($amount);
+        $amount = app(MoneyService::class)->convertToSatoshi("0.009876");
+        $amountWithCommission = app(MoneyService::class)->getAmountWithCommission((string)$amount);
 
-        app(DatabaseManager::class)->beginTransaction();
         $result = $this->transactionService->performTransaction($userFromWallet, $userToWallet, $amount, $amountWithCommission);
-        app(DatabaseManager::class)->commit();
 
         self::assertTrue($result);
     }
@@ -84,17 +74,8 @@ class TransactionTest extends TestCase
      */
     public function sendTransaction()
     {
-        $userFrom = User::create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'password' => bcrypt($this->faker->password),
-        ]);
-
-        $userTo = User::create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'password' => bcrypt($this->faker->password),
-        ]);
+        $userFrom = User::factory()->create();
+        $userTo = User::factory()->create();
 
         $walletFrom = Wallet::create([
             'user_id' => $userFrom->id,
@@ -104,9 +85,9 @@ class TransactionTest extends TestCase
             'user_id' => $userTo->id,
         ]);
 
-        $amount = MoneyService::convertToSatoshi("0.009876");
+        $amount = app(MoneyService::class)->convertToSatoshi("0.009876");
 
-        $result = $this->transactionService->send($userFrom->id, $userTo->id, $walletFrom->address, $walletTo->address, $amount);
+        $result = $this->transactionService->send($userFrom->id, $walletFrom->id, $walletTo->id, $amount);
 
         self::assertTrue($result);
     }

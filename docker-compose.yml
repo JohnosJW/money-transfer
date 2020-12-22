@@ -8,9 +8,6 @@ services:
     container_name: ${APP_NAME:?err}-php
     volumes:
       - .:/var/www/html/:cached
-    environment:
-#      XDEBUG_CONFIG: "remote_host=192.168.1.40 remote_enable=1 remote_autostart=off remote_port=9000"
-      PHP_IDE_CONFIG: "serverName=Docker"
 
   nginx:
     image: nginx:latest

@@ -20,11 +20,10 @@ class CreateTransactionsTable extends Migration
             $table->id()->autoIncrement();
             $table->unsignedBigInteger('user_id')->nullable(false);
             $table->enum('type', ['debit', 'credit']);
-            $table->string('from_wallet_address');
-            $table->string('to_wallet_address');
+            $table->unsignedBigInteger('from_wallet_id');
+            $table->unsignedBigInteger('to_wallet_id');
             $table->bigInteger('amount');
             $table->bigInteger('commission')->nullable();
-            $table->string('status');
             $table->timestamps();
             $table->softDeletes();
 

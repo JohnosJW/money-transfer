@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Models\User;
@@ -44,11 +46,12 @@ class CreateSampleData extends Command
             $userData = [
                 'name' => 'User' . $item,
                 'email' => 'user' . $item . '@app.app',
-                'password' => bcrypt('123456'),
             ];
 
             /** @var  $user */
-            $user = User::create($userData);
+            $user = new User($userData);
+            $user->password = bcrypt('123456');
+            $user->save();
 
             /** @var  $walletOfFirstUser */
             $wallet = Wallet::create([

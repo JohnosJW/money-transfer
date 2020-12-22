@@ -1,10 +1,12 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
 
+use App\Exceptions\LowBalanceException;
+use App\Exceptions\NotWalletOwnerException;
 use App\Http\Controllers\Api\ApiBaseController;
 use App\Http\Requests\CreateTransactionRequest;
 use App\Services\MoneyService;
@@ -20,6 +22,65 @@ use Throwable;
 class TransactionController extends ApiBaseController
 {
     /**
+     * @OA\Post(
+     *      path="/api/v1/transactions",
+     *      operationId="sendTransaction",
+     *      tags={"Transaction"},
+     *      summary="Send transaction between wallets",
+     *      description="Returns success answer",
+     *
+     *     @OA\Parameter(
+     *          name="from_wallet_id",
+     *          in="path",
+     *          required=true,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *     ),
+     *
+     *     @OA\Parameter(
+     *          name="to_wallet_id",
+     *          in="path",
+     *          required=true,
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *     ),
+     *
+     *     @OA\Parameter(
+     *          name="amount",
+     *          in="path",
+     *          required=true,
+     *          @OA\Schema(
+     *              type="numeric"
+     *          )
+     *     ),
+     *
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *          @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      ),
+     * @OA\Response(
+     *      response=422,
+     *      description="Bad Request"
+     *   ),
+     * @OA\Response(
+     *      response=404,
+     *      description="not found"
+     *   ),
+     *  )
+     *
      * @param CreateTransactionRequest $request
      * @param TransactionService $transactionService
      * @return JsonResponse
@@ -29,18 +90,21 @@ class TransactionController extends ApiBaseController
     {
         /** @var  CreateTransactionRequest $fromUser */
         $fromUser = $request->user();
-        $toUserId = (int)$request->post('to_user_id');
-        $addressFrom = $request->post('from_wallet_address');
-        $addressTo = $request->post('to_wallet_address');
+        $fromWalletId = (int)$request->post('from_wallet_id');
+        $toWalletId = (int)$request->post('to_wallet_id');
         $amount = $request->post('amount');
-        $amount = MoneyService::convertToSatoshi($amount);
+        $amount = app(MoneyService::class)->convertToSatoshi($amount);
 
         try {
-            $transactionService->send($fromUser->id, $toUserId, $addressFrom, $addressTo, $amount);
+            $transactionService->send($fromUser->id, $fromWalletId, $toWalletId, $amount);
+        } catch (NotWalletOwnerException $e) {
+            return $this->errorResponse(['You are not owner of this wallet']);
+        } catch (LowBalanceException $e) {
+            return $this->errorResponse(['Too low balance']);
         } catch (\DomainException $e) {
             return $this->errorResponse([$e->getMessage()]);
         } catch (Exception $e) {
-            return  $this->errorResponse([$e->getMessage()]);
+            return $this->errorResponse([$e->getMessage()]);
         }
 
         return $this->successResponse(['success' => 'Transaction success']);

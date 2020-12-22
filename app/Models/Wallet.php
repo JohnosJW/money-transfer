@@ -22,9 +22,6 @@ class Wallet extends Model
 {
     use SoftDeletes;
 
-    /** @var string  */
-    public $table = 'wallets';
-
     /** @var array  */
     protected $dates = ['deleted_at'];
 
@@ -59,7 +56,7 @@ class Wallet extends Model
 
         static::creating(function($model)
         {
-            $model->address = md5(uniqid());
+            $model->address = md5(uniqid('', true));
             $model->balance = self::START_BALANCE * self::SATOSHI_IN_ONE_BITCOIN;
         });
     }

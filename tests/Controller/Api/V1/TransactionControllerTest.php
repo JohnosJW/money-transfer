@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Passport\Passport;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 /**
@@ -23,18 +24,8 @@ class TransactionControllerTest extends TestCase
     public function createPositiveScenario(): void
     {
         $amount = "0.001";
-
-        $userFrom = User::create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'password' => bcrypt($this->faker->password),
-        ]);
-
-        $userTo = User::create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'password' => bcrypt($this->faker->password),
-        ]);
+        $userFrom = User::factory()->create();
+        $userTo = User::factory()->create();
 
         /** @var  $walletOfFirstUser */
         $walletFrom = Wallet::create([
@@ -52,13 +43,12 @@ class TransactionControllerTest extends TestCase
         );
 
         $response = $this->postJson(route('transactions'), [
-            "to_user_id" => $userTo->id,
-            "from_wallet_address" => $walletFrom->address,
-            "to_wallet_address" => $walletTo->address,
+            "from_wallet_id" => $walletFrom->id,
+            "to_wallet_id" => $walletTo->id,
             "amount" => $amount,
         ]);
 
-        $response->assertStatus(200);
+        $response->assertStatus(Response::HTTP_OK);
         $response->assertJson(['success' => 'Transaction success']);
     }
 
@@ -67,18 +57,8 @@ class TransactionControllerTest extends TestCase
     {
         /** @var  $amount */
         $amount = "1000";
-
-        $userFrom = User::create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'password' => bcrypt($this->faker->password),
-        ]);
-
-        $userTo = User::create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->email,
-            'password' => bcrypt($this->faker->password),
-        ]);
+        $userFrom = User::factory()->create();
+        $userTo = User::factory()->create();
 
         /** @var  $walletOfFirstUser */
         $walletFrom = Wallet::create([
@@ -96,13 +76,12 @@ class TransactionControllerTest extends TestCase
         );
 
         $response = $this->postJson(route('transactions'), [
-            "to_user_id" => $userTo->id,
-            "from_wallet_address" => $walletFrom->address,
-            "to_wallet_address" => $walletTo->address,
+            "from_wallet_id" => $walletFrom->id,
+            "to_wallet_id" => $walletTo->id,
             "amount" => $amount,
         ]);
 
-        $response->assertStatus(422);
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
         $response->assertJson(['Too low balance']);
     }
 }

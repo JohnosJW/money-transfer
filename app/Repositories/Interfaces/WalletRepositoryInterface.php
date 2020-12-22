@@ -12,9 +12,8 @@ namespace App\Repositories\Interfaces;
 interface WalletRepositoryInterface
 {
     /**
-     * @param int $userId
-     * @param string $address
+     * @param int $id
      * @return mixed
      */
-    public function getByUserIdAndAddressWithLockForUpdate(int $userId, string $address);
+    public function getByIdWithLockForUpdate(int $id);
 }

@@ -11,6 +11,7 @@
 6. Requests must be sent with `OAuth 2.0` type authorization and token must be `Bearer <your_access_token>`.
 7. There are unit tests. Execute by: `docker exec $(docker ps -q -f name=myapp-php) ./vendor/bin/phpunit tests/Unit/`
 8. There are tests for end-points. Execute by: `docker exec $(docker ps -q -f name=myapp-php) ./vendor/bin/phpunit tests/Controller/Api/V1/`
+9. There is a Swagger info: `http://127.0.0.1:8012/docs/api-docs.json`
 
 ## Curl requests
 ##### POST /api/v1/auth
@@ -21,7 +22,6 @@
 ##### POST /api/v1/transactions
 `curl --location --request POST 'http://127.0.0.1:8012/api/v1/transactions' \
 --header 'Authorization: Bearer <your_access_token>' \
---form 'to_user_id="<to_user_id>"' \
---form 'from_wallet_address="<from_user_wallet_address>"' \
---form 'to_wallet_address="<to_user_wallet_address>"' \
---form 'amount="10"'`
+--form 'from_wallet_id="<from_wallet_id>"' \
+--form 'to_wallet_id="<to_wallet_id>"' \
+--form 'amount="0.1"'`

@@ -15,19 +15,19 @@ class MoneyService
 {
     /**
      * @param string $amount
-     * @return string
+     * @return int
      */
-    public static function convertToSatoshi(string $amount): string
+    public function convertToSatoshi(string $amount): int
     {
-        return bcmul((string)$amount, (string)Wallet::SATOSHI_IN_ONE_BITCOIN, 2);
+        return (int)bcmul($amount, (string)Wallet::SATOSHI_IN_ONE_BITCOIN);
     }
 
     /**
      * @param string $amount
-     * @return string
+     * @return int
      */
-    public static function getAmountWithCommission(string $amount): string
+    public function getAmountWithCommission(string $amount): int
     {
-        return bcadd($amount, bcdiv(bcmul(env('COMMISSION'), $amount, 2), '100', 2));
+        return (int)bcadd($amount, bcdiv(bcmul(config('app.commission'), $amount, 2), '100'));
     }
 }
