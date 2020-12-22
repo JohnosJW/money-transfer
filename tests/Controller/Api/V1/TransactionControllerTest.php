@@ -84,4 +84,32 @@ class TransactionControllerTest extends TestCase
         $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
         $response->assertJson(['Too low balance']);
     }
+
+    /** @test */
+    public function createNegativeScenarioNotOwnerWallet(): void
+    {
+        /** @var  $amount */
+        $amount = "1000";
+        $userFrom = User::factory()->create();
+        $userTo = User::factory()->create();
+
+        /** @var  $walletOfFirstUser */
+        $walletTo = Wallet::create([
+            'user_id' => $userTo->id,
+        ]);
+
+        Passport::actingAs(
+            $userFrom,
+            ['create-servers']
+        );
+
+        $response = $this->postJson(route('transactions'), [
+            "from_wallet_id" => $walletTo->id,
+            "to_wallet_id" => $walletTo->id,
+            "amount" => $amount,
+        ]);
+
+        $response->assertStatus(Response::HTTP_UNPROCESSABLE_ENTITY);
+        $response->assertJson(['You are not owner of this wallet']);
+    }
 }
