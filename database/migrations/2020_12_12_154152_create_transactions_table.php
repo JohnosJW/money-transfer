@@ -38,10 +38,6 @@ class CreateTransactionsTable extends Migration
             $table->foreign('to_wallet_id')
                 ->references('id')
                 ->on('wallets');
-
-            $table->index('user_id');
-            $table->index('from_wallet_id');
-            $table->index('to_wallet_id');
         });
     }
 
@@ -56,10 +52,6 @@ class CreateTransactionsTable extends Migration
             $table->dropForeign('transactions_user_id_foreign');
             $table->dropForeign('transactions_from_wallet_id_foreign');
             $table->dropForeign('transactions_to_wallet_id_foreign');
-
-            $table->dropIndex(['user_id']);
-            $table->dropIndex(['from_wallet_id']);
-            $table->dropIndex(['to_wallet_id']);
         });
 
         Schema::dropIfExists('transactions');

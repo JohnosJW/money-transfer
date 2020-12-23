@@ -28,7 +28,7 @@ class CreateWalletsTable extends Migration
                 ->references('id')
                 ->on('users');
 
-            $table->index('user_id');
+            $table->index('address');
         });
     }
 
@@ -42,7 +42,7 @@ class CreateWalletsTable extends Migration
         Schema::table('wallets', function (Blueprint $table) {
             $table->dropForeign('wallets_user_id_foreign');
 
-            $table->dropIndex(['user_id']);
+            $table->dropIndex(['address']);
         });
 
         Schema::dropIfExists('wallets');
