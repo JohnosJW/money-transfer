@@ -20,21 +20,28 @@ use Throwable;
  */
 class TransactionService
 {
-    /** @var WalletRepositoryInterface  */
+    /** @var WalletRepositoryInterface */
     public WalletRepositoryInterface $walletRepository;
 
-    /** @var DatabaseManager  */
+    /** @var DatabaseManager */
     public DatabaseManager $databaseManager;
+
+    /** @var MoneyService  */
+    public MoneyService $moneyService;
 
     /**
      * TransactionService constructor.
      * @param DatabaseManager $databaseManager
      * @param WalletRepositoryInterface $walletRepository
+     * @param MoneyService $moneyService
      */
-    public function __construct(DatabaseManager $databaseManager, WalletRepositoryInterface $walletRepository)
+    public function __construct(
+        DatabaseManager $databaseManager, WalletRepositoryInterface $walletRepository, MoneyService $moneyService
+    )
     {
         $this->walletRepository = $walletRepository;
         $this->databaseManager = $databaseManager;
+        $this->moneyService = $moneyService;
     }
 
     /**
@@ -50,19 +57,19 @@ class TransactionService
     public function send(int $fromUserId, int $fromWalletId, int $toWalletId, int $amount): bool
     {
         $userFromWallet = $this->walletRepository
-            ->getByIdWithLockForUpdate($fromWalletId)->first();
+            ->getByIdWithLockForUpdate($fromWalletId);
 
         $userToWallet = $this->walletRepository
-            ->getByIdWithLockForUpdate($toWalletId)->first();
+            ->getByIdWithLockForUpdate($toWalletId);
 
-        $amountWithCommission = app(MoneyService::class)->getAmountWithCommission((string)$amount);
+        $amountWithCommission = $this->moneyService->getAmountWithCommission((string)$amount);
 
         if (!$userFromWallet || $userFromWallet->user_id !== $fromUserId) {
-            throw new NotWalletOwnerException();
+            throw new NotWalletOwnerException('You are not owner of this wallet');
         }
 
         if ($userFromWallet->balance < $amountWithCommission) {
-            throw new LowBalanceException();
+            throw new LowBalanceException('Too low balance');
         }
 
         try {

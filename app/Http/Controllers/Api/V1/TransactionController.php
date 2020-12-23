@@ -60,47 +60,54 @@ class TransactionController extends ApiBaseController
      *          response=200,
      *          description="Successful operation",
      *          @OA\MediaType(
-     *           mediaType="application/json",
-     *      )
+     *              mediaType="application/json",
+     *          )
      *      ),
+     *
      *      @OA\Response(
      *          response=401,
      *          description="Unauthenticated",
      *      ),
+     *
      *      @OA\Response(
      *          response=403,
      *          description="Forbidden"
      *      ),
-     * @OA\Response(
-     *      response=422,
-     *      description="Bad Request"
-     *   ),
-     * @OA\Response(
-     *      response=404,
-     *      description="not found"
-     *   ),
+     *
+     *      @OA\Response(
+     *          response=422,
+     *          description="Bad Request"
+     *      ),
+     *
+     *      @OA\Response(
+     *          response=404,
+     *          description="not found"
+     *      ),
      *  )
      *
      * @param CreateTransactionRequest $request
      * @param TransactionService $transactionService
+     * @param MoneyService $moneyService
      * @return JsonResponse
      * @throws Throwable
      */
-    public function store(CreateTransactionRequest $request, TransactionService $transactionService): JsonResponse
+    public function store(
+        CreateTransactionRequest $request, TransactionService $transactionService, MoneyService $moneyService
+    ): JsonResponse
     {
         /** @var  CreateTransactionRequest $fromUser */
         $fromUser = $request->user();
         $fromWalletId = (int)$request->post('from_wallet_id');
         $toWalletId = (int)$request->post('to_wallet_id');
         $amount = $request->post('amount');
-        $amount = app(MoneyService::class)->convertToSatoshi($amount);
+        $amount = $moneyService->convertToSatoshi($amount);
 
         try {
             $transactionService->send($fromUser->id, $fromWalletId, $toWalletId, $amount);
         } catch (NotWalletOwnerException $e) {
-            return $this->errorResponse(['You are not owner of this wallet']);
+            return $this->errorResponse([$e->getMessage()]);
         } catch (LowBalanceException $e) {
-            return $this->errorResponse(['Too low balance']);
+            return $this->errorResponse([$e->getMessage()]);
         } catch (\DomainException $e) {
             return $this->errorResponse([$e->getMessage()]);
         } catch (Exception $e) {

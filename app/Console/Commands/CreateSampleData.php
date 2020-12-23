@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Console\Command;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 /**
  * Class CreateSampleData
@@ -28,19 +29,11 @@ class CreateSampleData extends Command
      */
     protected $description = 'Command created a sample data';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     /** @command */
     public function handle(): void
     {
+        $output = new ConsoleOutput();
+
         foreach ([1, 2, 3] as $item) {
             /** @var  $validatedData */
             $userData = [
@@ -58,8 +51,9 @@ class CreateSampleData extends Command
                 'user_id' => $user->id,
             ]);
 
-            print "User: " . $user->email . " Wallet: " . $wallet->address;
-            print "\n";
+            $output->writeln(
+                "User: " . $user->email . " Password: 123456" . " WalletID: " . $wallet->id . " Wallet: " . $wallet->address
+            );
         }
     }
 }

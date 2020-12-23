@@ -20,9 +20,6 @@ class WalletRepository implements WalletRepositoryInterface
      */
     public function getByIdWithLockForUpdate(int $id)
     {
-        return Wallet::where([
-            'id' => $id
-        ])
-            ->lockForUpdate();
+        return Wallet::lockForUpdate()->find($id);
     }
 }
