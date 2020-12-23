@@ -39,6 +39,12 @@ class CreateWalletsTable extends Migration
      */
     public function down()
     {
+        Schema::table('wallets', function (Blueprint $table) {
+            $table->dropForeign('wallets_user_id_foreign');
+
+            $table->dropIndex(['user_id']);
+        });
+
         Schema::dropIfExists('wallets');
     }
 }
