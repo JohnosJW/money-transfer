@@ -38,6 +38,10 @@ class CreateTransactionsTable extends Migration
             $table->foreign('to_wallet_id')
                 ->references('id')
                 ->on('wallets');
+
+            $table->index('user_id');
+            $table->index('from_wallet_id');
+            $table->index('to_wallet_id');
         });
     }
 
