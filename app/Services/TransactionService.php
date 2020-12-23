@@ -36,7 +36,9 @@ class TransactionService
      * @param MoneyService $moneyService
      */
     public function __construct(
-        DatabaseManager $databaseManager, WalletRepositoryInterface $walletRepository, MoneyService $moneyService
+        DatabaseManager $databaseManager,
+        WalletRepositoryInterface $walletRepository,
+        MoneyService $moneyService
     )
     {
         $this->walletRepository = $walletRepository;

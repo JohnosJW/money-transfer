@@ -92,7 +92,9 @@ class TransactionController extends ApiBaseController
      * @throws Throwable
      */
     public function store(
-        CreateTransactionRequest $request, TransactionService $transactionService, MoneyService $moneyService
+        CreateTransactionRequest $request,
+        TransactionService $transactionService,
+        MoneyService $moneyService
     ): JsonResponse
     {
         /** @var  CreateTransactionRequest $fromUser */

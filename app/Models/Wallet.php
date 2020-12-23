@@ -8,12 +8,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use phpseclib\Math\BigInteger;
 
 /**
  * @property int $user_id
  * @property string $address
- * @property BigInteger $balance
+ * @property int $balance
  *
  * Class Wallet
  * @package App\Models

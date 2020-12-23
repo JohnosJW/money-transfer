@@ -8,15 +8,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use phpseclib\Math\BigInteger;
 
 /**
  * @property int $user_id
  * @property string $type
  * @property int $from_wallet_id
  * @property int $to_wallet_id
- * @property BigInteger $amount
- * @property BigInteger $commission
+ * @property int $amount
+ * @property int $commission
  *
  * Class Transaction
  * @package App\Models
@@ -34,8 +33,8 @@ class Transaction extends Model
     public $fillable = [
         'user_id',
         'type',
-        'from_wallet_address',
-        'to_wallet_address',
+        'from_wallet_id',
+        'to_wallet_id',
         'amount',
         'commission',
     ];
